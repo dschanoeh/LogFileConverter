@@ -1,0 +1,11 @@
+
+(0.000000) can2 5D1#000000
+DEVICE_ALIAS Powertrain can0
+DEVICE_ALIAS Comfort can1
+DESCRIPTION "this is a simple
+PLATFORM FOO
+(0.100000) can1 001#0000
+DESCRIPTION multiline
+DESCRIPTION description"
+
+malformedline
