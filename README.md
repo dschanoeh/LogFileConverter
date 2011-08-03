@@ -3,6 +3,7 @@ LogFileConverter
 
 LogFileConverter is a simple python script that can convert SocketCAN log files (.log or gzipped as .log.gz)
 to the strict log file syntax that Kayak uses. This syntax is still fully compatible to the SocketCAN syntax.
+Support for Vector CANoe .asc log files is in progress.
 
 Conversion
 ----------
@@ -11,9 +12,9 @@ The LogFileConverter does:
 
 * separate content from header (all header lines first)
 * concentrate multiline descriptions to a single line
-* add device aliases for busses that are not listed yet
+* add device aliases for busses that are not listed yet (through checking every frame in the log file)
 * add empty descriptions if not present
-* ignore malformed lines
+* ignore malformed and whitespace lines
 
 Example
 -------
