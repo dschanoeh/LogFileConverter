@@ -2,6 +2,7 @@
 import gzip
 import re
 import sys
+import os.path
 
 infile_name = sys.argv[1]
 
@@ -17,6 +18,14 @@ elif infile_name.endswith(".log"):
     infile_type = '.log'
 
 print("opening outfile: " + outfile_name)
+
+#check if outfile exists and prompt for overwrite
+if os.path.exists(outfile_name):
+    print("!file already exists")
+    res = input("overwrite [Y|n]?")
+    if not (res == 'y' or res == 'Y') and not res == '':
+        infile.close()
+        sys.exit(0)
 
 outfile = gzip.open(outfile_name, 'w')
 
