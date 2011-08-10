@@ -9,6 +9,10 @@ class InfileType:
     LOG_GZ = 1
     ASC = 2
 
+if len(sys.argv) != 2:
+    print("usage: ./LogFileConverter.py [filename.{log|log.gz|asc}]")
+    sys.exit(0)
+
 infile_name = sys.argv[1]
 
 print("opening infile: " + infile_name)
@@ -35,8 +39,11 @@ if os.path.exists(outfile_name):
     if not (res == 'y' or res == 'Y') and not res == '':
         infile.close()
         sys.exit(0)
-
-outfile = gzip.open(outfile_name, 'w')
+try:
+    outfile = gzip.open(outfile_name, 'w')
+except:
+    print("!could not open outfile")
+    sys.exit(0)
 
 # first run: collect header information
 description_string = ''
@@ -120,23 +127,45 @@ if infile_type == InfileType.LOG or infile_type == InfileType.LOG_GZ:
 elif infile_type == InfileType.ASC:
     for line in infile:
         line = line[0:-1]
-        print(line)
 
-        if re.match('[0-9]+.[0-9]+\s[0-9]\s[a-fA-F0-9]+\s[TxR]+\s[D]\s[0-8]\s[0-9A-Fa-f\s]+' , line):
-            elements = line.split('\s')
-            print(elements)
+        if re.match('\s+[0-9]+.[0-9]+\s+[0-9]\s+[a-fA-F0-9]+\s+[TxR]+\s+[d]\s+[0-8]\s+[0-9A-Fa-f\s]+' , line):
+            elements = line.split()
+            bus_name = 'can' + elements[1]
+            newline = '(' + elements[0] +  ') ' + bus_name + ' ' + elements[2] + '#'
+            for i in range(6, len(elements)):
+                newline += elements[i]
+
+            content.append(newline)
+
+            found = False
+            for device_alias in device_aliases:
+                if device_alias[1] == bus_name:
+                    found = True
+                    break
+
+            if not found:
+                device_aliases.append((bus_name, bus_name))
+                print('adding alias for: ' + bus_name)
 
 infile.close()
 
 #write header
-outfile.write(bytes('DESCRIPTION "' + description_string + '"\n', 'UTF-8'))
-outfile.write(bytes('PLATFORM ' + platform_string + '\n', 'UTF-8'))
+if description_string != '':
+    outfile.write(('DESCRIPTION "' + description_string + '"\n').encode("utf-8"))
+else:
+    outfile.write(('DESCRIPTION "' + 'converted log file' + '"\n').encode("utf-8"))
+
+if platform_string != '':
+    outfile.write(('PLATFORM ' + platform_string + '\n').encode("utf-8"))
+else:
+    outfile.write(('PLATFORM ' + 'NO_PLATFORM' + '\n').encode("utf-8"))
+
 
 for device_alias in device_aliases:
-    outfile.write(bytes('DEVICE_ALIAS ' + device_alias[0] + ' ' + device_alias[1] + '\n', 'UTF-8'))
+    outfile.write(('DEVICE_ALIAS ' + device_alias[0] + ' ' + device_alias[1] + '\n').encode("utf-8"))
 
 #copy content
 for contentline in content:
-    outfile.write(bytes(contentline + '\n', 'UTF-8'))
+    outfile.write((contentline + '\n').encode("utf-8"))
 
 outfile.close()
